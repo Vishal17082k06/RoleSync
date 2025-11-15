@@ -1,0 +1,23 @@
+from fastapi import FastAPI
+from app.routers.ai_router import router as ai_router
+from app.auth.auth import router as auth_router
+from app.routers.jobrole_router import router as jobrole_router
+from app.routers.match_router import router as match_router
+from app.routers.upload_router import router as upload_router
+from app.routers.invite_router import router as invite_router
+
+import uvicorn
+
+app = FastAPI(title="RoleSync AI Backend")
+app.include_router(auth_router)
+app.include_router(ai_router)
+app.include_router(jobrole_router)
+app.include_router(match_router)
+app.include_router(upload_router)
+app.include_router(invite_router)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+

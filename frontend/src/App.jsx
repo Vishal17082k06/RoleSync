@@ -1,35 +1,49 @@
-import React, { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/navbar";
 import FileUpload from "./components/fileupload";
 import Feedback from "./components/feedback";
 import Home from "./components/Home";
 import AccountSidebar from "./components/AccountSidebar";
 import Chatbot from "./components/Chatbot";
+import { ResumeProvider } from "./components/ResumeProvider";
+
+function AppContent() {
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  const user = {
+    name: "Test User",
+    email: "test@example.com",
+    organization: "Acme",
+    created_roles: ["admin"],
+    joined_at: Date.now(),
+  };
+
+  // Close sidebar on route change
+  useEffect(() => setOpen(false), [location.pathname]);
+
+  return (
+    <>
+      <Navbar onAccountClick={() => setOpen(true)} />
+      <AccountSidebar open={open} onClose={() => setOpen(false)} user={user} />
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/upload" element={<FileUpload />} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/cht" element={<Chatbot />} />
+      </Routes>
+    </>
+  );
+}
 
 export default function App() {
-    const [open, setOpen] = useState(true); // start open for testing
-    const user = {
-        name: "Test User",
-        email: "test@example.com",
-        organization: "Acme",
-        created_roles: ["admin"],
-        joined_at: Date.now(),
-    };
-
-    return (
-        <>
-            <BrowserRouter>
-                <Navbar onAccountClick={() => setOpen(true)} />
-                <AccountSidebar open={open} onClose={() => setOpen(false)} user={user} />
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/feedback" element={<Feedback />} />
-                    <Route path="/upload" element={<FileUpload />} />
-                    <Route path="/acc" element={<AccountSidebar />} />
-                    <Route path="/cht" element={<Chatbot />} />
-                </Routes>
-            </BrowserRouter>
-        </>
-    );
+  return (
+    <ResumeProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </ResumeProvider>
+  );
 }

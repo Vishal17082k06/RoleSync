@@ -4,8 +4,7 @@ import "../components-css/navbar.css";
 export default function Navbar({ onAccountClick = () => {} }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Fallback avatar: compute initials (replace with a real user/avatar prop if available)
-  const userName = "Test User"; // <-- replace or accept as prop like ({ user }) for real data
+  const userName = "Test User";
   const initials = userName
     .split(" ")
     .map((s) => s[0] || "")
@@ -15,49 +14,52 @@ export default function Navbar({ onAccountClick = () => {} }) {
 
   return (
     <header className="nav">
-      <div className="nav-container">
-        <div className="nav-left">
-          <div className="nav-logo" aria-hidden>
-            <span className="logo-mark">AI</span>
-            <span className="logo-text">Consortium</span>
-          </div>
+  <div className="nav-container">
 
-          <button
-            className="nav-toggle"
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((s) => !s)}
-          >
-            <span className="hamburger" />
-          </button>
-        </div>
-
-        <nav className={`nav-links ${menuOpen ? "open" : ""}`} aria-label="Primary">
-          <a href="/">Home</a>
-          <a href="/upload">Job requirements </a>
-          <a href="/feedback">Feedback</a>
-          <a href="/about">Interview Prep</a>
-        </nav>
-
-        <div className="nav-actions">
-          <div className="nav-search">
-            <input className="nav-search-input" placeholder="Search resumes" aria-label="Search" />
-          </div>
-
-          <button className="btn-primary">Sign in</button>
-          <div className="nav-profile">
-            <button
-              className="nav-avatar-btn"
-              aria-label="Open account"
-              onClick={onAccountClick}
-              type="button"
-            >
-              {/* simple fallback avatar (initials) */}
-              <span className="nav-avatar nav-avatar--initials">{initials}</span>
-            </button>
-          </div>
-        </div>
+    {/* LEFT */}
+    <div className="nav-left">
+      <div className="nav-logo">
+        <span className="logo-mark">AI</span>
+        <span className="logo-text">Consortium</span>
       </div>
-    </header>
+    </div>
+
+    {/* CENTER */}
+    <div className="nav-center">
+      <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
+        <a href="/">Home</a>
+        <a href="/upload">Analysis</a>
+        <a href="/feedback">Feedback</a>
+        <a href="/cht">Interview Prep</a>
+      </nav>
+    </div>
+
+    {/* RIGHT */}
+    <div className="nav-right">
+      <button className="btn-primary">Sign in</button>
+
+      <button
+        className="nav-avatar-btn"
+        aria-label="Open account"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAccountClick();
+        }}
+      >
+        <span className="nav-avatar">{initials}</span>
+      </button>
+
+      <button
+        className="nav-toggle"
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen((s) => !s)}
+      >
+        <span className="hamburger" />
+      </button>
+    </div>
+
+  </div>
+</header>
+
   );
 }

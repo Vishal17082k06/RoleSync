@@ -1,26 +1,16 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useContext } from "react";
 import "../components-css/Fileupload.css";
+import { ResumeContext } from "../components/ResumeProvider"; // <-- use context
 
-/**
- * FileDrop
- * - Drag & drop + "Choose Files" button
- * - Shows selected file(s) list and sizes
- * - Provides upload hooks (you can wire axios in uploadAll)
- *
- * Props:
- *  - multiple (bool) default true
- *  - accept (string) e.g. ".pdf,.doc,.docx,image/*"
- *  - maxSizeBytes (number) optional, to show max file notice
- *  - onUpload(fileList) optional callback invoked when user clicks Upload
- */
 export default function FileUpload({
   multiple = true,
   accept = ".pdf,.doc,.docx,image/*",
-  maxSizeBytes = 1073741824, // 1 GB by default (for display only)
+  maxSizeBytes = 1073741824,
   onUpload = null,
 }) {
+  const { uploadResume } = useContext(ResumeContext); // <-- get upload function
   const inputRef = useRef(null);
-  const [files, setFiles] = useState([]); // { file, id, error, progress }
+  const [files, setFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [info, setInfo] = useState("");
 
@@ -33,7 +23,6 @@ export default function FileUpload({
 
       arr.forEach((f) => {
         const fid = id(f);
-        // avoid duplicates
         if (!next.some((x) => x.id === fid)) {
           let error = null;
           if (maxSizeBytes && f.size > maxSizeBytes) {
@@ -48,78 +37,57 @@ export default function FileUpload({
     [files, maxSizeBytes]
   );
 
-  function handleInputChange(e) {
+  const handleInputChange = (e) => {
     addFiles(e.target.files);
-    // reset input to allow re-selecting same file if needed
     e.target.value = "";
-  }
+  };
 
-  function handleDrop(e) {
+  const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
     addFiles(e.dataTransfer.files);
-  }
+  };
 
-  function handleDragOver(e) {
+  const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragOver(true);
-  }
+  };
 
-  function handleDragLeave(e) {
+  const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-  }
+  };
 
-  function removeFile(idToRemove) {
+  const removeFile = (idToRemove) => {
     setFiles((prev) => prev.filter((f) => f.id !== idToRemove));
-  }
+  };
 
-  function clearAll() {
-    setFiles([]);
-  }
-
-  // Example upload handler — NOT wired to axios here.
-  // If you want to use axios, replace the body of this function.
-  async function uploadAll() {
-    if (files.length === 0) {
-      setInfo("No files to upload.");
-      return;
-    }
-    setInfo("Starting upload...");
-
-    // If onUpload prop provided, call it with list of File objects
-    if (typeof onUpload === "function") {
-      try {
-        await onUpload(files.map((f) => f.file));
-        setInfo("Upload finished (callback succeeded).");
-      } catch (err) {
-        setInfo("Upload callback failed.");
-      }
-      return;
-    }
-
-    // Local fake progress demo to show UI behavior
-    setFiles((prev) => prev.map((f) => ({ ...f, progress: 0 })));
-    for (let i = 0; i < files.length; i++) {
-      // simulate upload in steps
-      for (let p = 0; p <= 100; p += 10) {
-        await new Promise((r) => setTimeout(r, 25));
-        setFiles((prev) =>
-          prev.map((x, idx) => (idx === i ? { ...x, progress: p } : x))
-        );
-      }
-    }
-    setInfo("All uploads simulated (no network).");
-  }
+  const clearAll = () => setFiles([]);
 
   const friendlySize = (n) => {
     if (n < 1024) return `${n} B`;
     if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
     if (n < 1024 * 1024 * 1024) return `${Math.round(n / (1024 * 1024))} MB`;
     return `${Math.round(n / (1024 * 1024 * 1024))} GB`;
+  };
+
+  // This is the main upload handler now
+  const uploadAll = async () => {
+    if (files.length === 0) {
+      setInfo("No files to upload.");
+      return;
+    }
+
+    // For demo, just upload the first file to context
+    const file = files[0];
+    uploadResume(file);
+    setInfo("Resume uploaded successfully!");
+
+    // Clear local files if you want
+    // setFiles([]);
   };
 
   return (
@@ -160,18 +128,6 @@ export default function FileUpload({
 
           <div className="fd-note">
             Max file size {friendlySize(maxSizeBytes)}.
-            <a
-              className="fd-link"
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setInfo("Sign up link clicked (demo).");
-              }}
-            >
-              {" "}
-              Sign Up
-            </a>{" "}
-            for more
           </div>
 
           <div className="fd-draghint">or drag & drop files here</div>
@@ -217,12 +173,7 @@ export default function FileUpload({
         <button className="fd-clear" onClick={clearAll} disabled={files.length === 0}>
           Clear
         </button>
-
-        <button
-          className="fd-upload"
-          onClick={uploadAll}
-          disabled={files.length === 0}
-        >
+        <button className="fd-upload" onClick={uploadAll} disabled={files.length === 0}>
           Upload
         </button>
       </div>
